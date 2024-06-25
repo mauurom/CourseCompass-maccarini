@@ -1,0 +1,36 @@
+@startuml Diagrama_E-R
+!define primary_key(x) <b>x</b>
+!define foreign_key(x) <u>x</u>
+
+entity Usuario {
+    primary_key(dni) : CharField
+    nombre : CharField
+    apellido : CharField
+    correo : EmailField
+    fecha_nacimiento : DateField
+    tipo_usuario : CharField
+    is_active : BooleanField
+    is_admin : BooleanField
+    is_staff : BooleanField
+    is_superuser : BooleanField
+}
+
+entity Alumno {
+    primary_key(legajo_alumno) : IntegerField
+    foreign_key(usuario_id) : OneToOneField
+}
+
+entity Profesor {
+    primary_key(legajo_profesor) : IntegerField
+    foreign_key(usuario_id) : OneToOneField
+}
+
+entity Admin {
+    primary_key(nombre_usuario) : CharField
+    foreign_key(usuario_id) : OneToOneField
+}
+
+Usuario ||--|| Alumno : "uno a uno"
+Usuario ||--|| Profesor : "uno a uno"
+Usuario ||--|| Admin : "uno a uno"
+@enduml
