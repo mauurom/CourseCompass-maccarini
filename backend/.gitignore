@@ -1,0 +1,14 @@
+# created by virtualenv automatically
+_pycache_/
+*.py[cod]
+.env
+Lib/
+Scripts/
+.vscode/
+.idea/
+*.log
+*.sqlite3
+*.pyc
+.DS_Store
+bin/
+lib/
