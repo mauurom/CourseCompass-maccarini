@@ -6,8 +6,10 @@ from cursos.models.tarea import Tarea
 from cursos.models.entrega import Entrega
 from accounts.models.profesor import Profesor
 from accounts.models.alumno import Alumno
+from django.utils.timezone import make_aware
+from datetime import datetime
 
-class CursoTestCase(TestCase):
+class EntregaTestCase(TestCase):
     def setUp(self):
         self.user_profesor = get_user_model().objects.create_user(
             dni='12345678',
@@ -41,27 +43,26 @@ class CursoTestCase(TestCase):
             usuario=self.user_alumno,
             legajo_alumno=123
         )
+        self.tarea = Tarea.objects.create(
+            curso=self.curso,
+            titulo='Tarea de Prueba',
+            descripcion='Descripción de la tarea',
+            fecha_entrega=make_aware(datetime(2024, 6, 30, 12, 0, 0))
+        )
+        self.entrega = Entrega.objects.create(
+            tarea=self.tarea,
+            estudiante=self.alumno,
+            archivo='cursos/tests/fixtures/test_file.txt',
+            comentario='Comentario de prueba',
+            fecha_entrega=make_aware(datetime(2024, 6, 25, 12, 0, 0))
+        )
 
-    def test_crear_curso(self):
-        self.client.login(dni='12345678', password='password')
-        response = self.client.post(reverse('crear_curso'), {
-            'nombre': 'Nuevo Curso',
-            'descripcion': 'Descripción del nuevo curso',
-            'año': 2025,
-            'horario': 'Martes 14:00 - 16:00',
-            'contraseña_matriculacion': 'nuevapass',
-        })
-        self.assertEqual(response.status_code, 201)  # creación exitosa
-        self.assertTrue(Curso.objects.filter(nombre='Nuevo Curso').exists())
-
-    def test_lista_cursos(self):
-        self.client.login(dni='12345678', password='password')
-        response = self.client.get(reverse('lista_cursos'))
+    def test_entregar_tarea(self):
+        self.client.login(dni='87654321', password='password')
+        with open('cursos/tests/fixtures/test_file.txt', 'rb') as f:
+            response = self.client.post(reverse('entregar_tarea', kwargs={'tarea_id': self.tarea.id}), {
+                'archivo': f,
+                'comentario': 'Comentario de prueba'
+            })
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, self.curso.nombre)
-
-    def test_curso_detalle(self):
-        self.client.login(dni='12345678', password='password')
-        response = self.client.get(reverse('curso_detalle', kwargs={'curso_id': self.curso.id}))
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, self.curso.nombre)
+        self.assertTrue(Entrega.objects.filter(tarea=self.tarea, estudiante=self.alumno).exists())

@@ -14,7 +14,7 @@ def crear_tarea_service(request, curso_id):
                 tarea = form.save(commit=False)
                 tarea.curso = curso
                 tarea.save()
-                return {'success': True, 'tarea_id': tarea.id}
+                return tarea  # Retornar la tarea creada en lugar de un diccionario
             else:
                 return {'errors': form.errors}
     return {'error': 'Unauthorized'}

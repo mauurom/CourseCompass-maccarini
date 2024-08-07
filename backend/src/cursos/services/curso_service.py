@@ -31,11 +31,11 @@ def curso_detalle_service(request, curso_id):
             'descripcion': curso.descripcion,
             'año': curso.año,
             'horario': curso.horario,
-            'profesor_id': curso.profesor.id
+            'profesor_id': curso.profesor.usuario.id  # Ajuste aquí
         },
         'inscrito': inscrito,
         'es_profesor': es_profesor,
-        'inscripciones': [{'estudiante_id': i.estudiante.id, 'fecha_inscripcion': i.fecha_inscripcion} for i in inscripciones] if inscripciones else []
+        'inscripciones': [{'estudiante_id': i.estudiante.usuario.id, 'fecha_inscripcion': i.fecha_inscripcion} for i in inscripciones] if inscripciones else []
     }
 
 def lista_cursos_service(request):

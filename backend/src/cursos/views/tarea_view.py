@@ -1,7 +1,7 @@
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
-from ..models import Curso
+from ..models import Curso, Tarea
 from ..forms import TareaForm, EntregaForm
 from ..services.tarea_service import crear_tarea_service, entregar_tarea_service, tarea_detalle_service
 
@@ -9,10 +9,10 @@ from ..services.tarea_service import crear_tarea_service, entregar_tarea_service
 def crear_tarea(request, curso_id):
     if request.method == 'POST':
         response = crear_tarea_service(request, curso_id)
-        if isinstance(response, dict):
-            return JsonResponse(response, status=400)
-        else:
+        if isinstance(response, Tarea):
             return JsonResponse({'success': True, 'curso_id': curso_id}, status=201)
+        else:
+            return JsonResponse(response, status=400)
     else:
         form = TareaForm()
         curso = get_object_or_404(Curso, id=curso_id)
@@ -36,5 +36,14 @@ def entregar_tarea(request, tarea_id):
 
 @login_required
 def tarea_detalle(request, tarea_id):
-    context = tarea_detalle_service(request, tarea_id)
+    tarea = get_object_or_404(Tarea, id=tarea_id)
+    context = {
+        'titulo': tarea.titulo,
+        'descripcion': tarea.descripcion,
+        'fecha_entrega': tarea.fecha_entrega,
+        'curso': {
+            'id': tarea.curso.id,
+            'nombre': tarea.curso.nombre,
+        }
+    }
     return JsonResponse(context, status=200)
