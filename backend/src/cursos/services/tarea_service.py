@@ -1,4 +1,4 @@
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from ..models.tarea import Tarea
 from ..models.entrega import Entrega
@@ -14,33 +14,33 @@ def crear_tarea_service(request, curso_id):
                 tarea = form.save(commit=False)
                 tarea.curso = curso
                 tarea.save()
-                return redirect('curso_detalle', curso_id=curso.id)
-        else:
-            form = TareaForm()
-        return {'form': form, 'curso': curso}
+                return {'success': True, 'tarea_id': tarea.id}
+            else:
+                return {'errors': form.errors}
+    return {'error': 'Unauthorized'}
 
 def entregar_tarea_service(request, tarea_id):
     tarea = get_object_or_404(Tarea, id=tarea_id)
-    if hasattr(request.user, 'estudiante'):
+    if hasattr(request.user, 'alumno'):
         if request.method == 'POST':
             form = EntregaForm(request.POST, request.FILES)
             if form.is_valid():
                 entrega = form.save(commit=False)
                 entrega.tarea = tarea
-                entrega.estudiante = request.user.estudiante
+                entrega.estudiante = request.user.alumno
                 entrega.fecha_entrega = timezone.now()
                 entrega.save()
-                return redirect('curso_detalle', curso_id=tarea.curso.id)
-        else:
-            form = EntregaForm()
-        return {'form': form, 'tarea': tarea}
+                return {'success': True, 'entrega_id': entrega.id}
+            else:
+                return {'errors': form.errors}
+    return {'error': 'Unauthorized'}
 
 def lista_tareas_service(request, curso_id):
     curso = get_object_or_404(Curso, id=curso_id)
     tareas = Tarea.objects.filter(curso=curso)
     return {
-        'curso': curso,
-        'tareas': tareas
+        'curso_id': curso.id,
+        'tareas': [{'id': t.id, 'titulo': t.titulo, 'descripcion': t.descripcion, 'fecha_entrega': t.fecha_entrega} for t in tareas]
     }
 
 def tarea_detalle_service(request, tarea_id):
@@ -60,20 +60,22 @@ def tarea_detalle_service(request, tarea_id):
                 entrega.fecha_entrega = timezone.now()
                 entrega.save()
             else:
-                Entrega.objects.create(
+                entrega = Entrega.objects.create(
                     tarea=tarea,
                     estudiante=request.user.alumno,
                     archivo=form.cleaned_data['archivo'],
                     comentario=form.cleaned_data['comentario'],
                     fecha_entrega=timezone.now()
                 )
-            return redirect('tarea_detalle', tarea_id=tarea.id)
-    else:
-        form = EntregaForm()
+            return {'success': True, 'entrega_id': entrega.id}
 
     return {
-        'tarea': tarea,
+        'tarea_id': tarea.id,
         'es_profesor': es_profesor,
-        'form': form,
-        'entrega': entrega
+        'entrega': {
+            'id': entrega.id,
+            'archivo': entrega.archivo.url,
+            'comentario': entrega.comentario,
+            'fecha_entrega': entrega.fecha_entrega
+        } if entrega else None
     }

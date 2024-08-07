@@ -1,4 +1,4 @@
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from ..models.curso import Curso
 from ..models.inscripcion import InscripcionMateria
@@ -18,36 +18,43 @@ def curso_detalle_service(request, curso_id):
                 curso=curso,
                 fecha_inscripcion=timezone.now()
             )
-            return redirect('lista_cursos')
+            return {'success': True, 'message': 'Inscripción realizada'}
 
     inscripciones = None
     if es_profesor:
         inscripciones = InscripcionMateria.objects.filter(curso=curso)
 
     return {
-        'curso': curso,
+        'curso': {
+            'id': curso.id,
+            'nombre': curso.nombre,
+            'descripcion': curso.descripcion,
+            'año': curso.año,
+            'horario': curso.horario,
+            'profesor_id': curso.profesor.id
+        },
         'inscrito': inscrito,
         'es_profesor': es_profesor,
-        'inscripciones': inscripciones,
+        'inscripciones': [{'estudiante_id': i.estudiante.id, 'fecha_inscripcion': i.fecha_inscripcion} for i in inscripciones] if inscripciones else []
     }
 
 def lista_cursos_service(request):
     usuario = request.user
     materias = Curso.objects.all()
-    inscripciones = InscripcionMateria.objects.filter(estudiante__usuario=usuario) if hasattr(usuario, 'estudiante') else None
+    inscripciones = InscripcionMateria.objects.filter(estudiante__usuario=usuario) if hasattr(usuario, 'alumno') else None
 
     # Determinar el tipo de usuario
     if hasattr(usuario, 'profesor'):
         tipo_usuario = 'profesor'
-    elif hasattr(usuario, 'estudiante'):
-        tipo_usuario = 'estudiante'
+    elif hasattr(usuario, 'alumno'):
+        tipo_usuario = 'alumno'
     else:
         tipo_usuario = 'desconocido'
 
     return {
-        'user': usuario,
-        'asignaturas': materias,
-        'inscripciones': inscripciones,
+        'user_id': usuario.id,
+        'asignaturas': [{'id': m.id, 'nombre': m.nombre, 'descripcion': m.descripcion, 'año': m.año, 'horario': m.horario} for m in materias],
+        'inscripciones': [{'curso_id': i.curso.id, 'fecha_inscripcion': i.fecha_inscripcion} for i in inscripciones] if inscripciones else [],
         'tipo_usuario': tipo_usuario
     }
 
@@ -60,7 +67,7 @@ def crear_curso_service(request):
             horario = request.POST['horario']
             contraseña_matriculacion = request.POST['contraseña_matriculacion']
             profesor = request.user.profesor
-            Curso.objects.create(
+            curso = Curso.objects.create(
                 nombre=nombre,
                 descripcion=descripcion,
                 año=año,
@@ -68,6 +75,6 @@ def crear_curso_service(request):
                 contraseña_matriculacion=contraseña_matriculacion,
                 profesor=profesor
             )
-            return redirect('lista_cursos')
+            return {'curso_id': curso.id, 'success': True}
     else:
-        return render(request, 'cursos/error.html', {'message': 'Debe ser profesor para crear un curso.'})
+        return {'error': 'Unauthorized'}
