@@ -14,6 +14,7 @@ from pathlib import Path
 import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
+#Construye rutas dentro del proyecto
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
@@ -21,16 +22,19 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
+#Clave secreta para operaciones crptograficas
 SECRET_KEY = 'django-insecure-+4ikq-i36)(w))r_^#p6lufs7yw%x+k9@d)7ym-g1_1bd890t*'
 
 # SECURITY WARNING: don't run with debug turned on in production!
+#Debug activado para el desarrollo
 DEBUG = True
 
+#Dominios permitidos
 ALLOWED_HOSTS = []
 
 
 # Application definition
-
+#Aplicaciones necesarias e instaladas para el proyecto.
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -38,12 +42,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    
+    #Django REST framework
     'rest_framework',
+    #Apps personalizadas
     'accounts',
     'cursos'
 ]
-
+#Middleware utilizado en el ciclo de peticiones
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -53,9 +58,10 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-
+#Condiguracion del archivo principal de URLs
 ROOT_URLCONF = 'CourseCompass.urls'
 
+#Configuracion de los motores de plantillas
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -77,21 +83,21 @@ WSGI_APPLICATION = 'CourseCompass.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
-
+#Configuracion de la base de datos, en este caso utilizamos PostgreSQL
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'proyecto-desarrollo-web',
-        'USER': 'manu',
-        'PASSWORD': '1234',
-        'HOST': 'localhost',
-        'PORT': '1111',
+        'NAME': os.getenv('DATABASE_NAME'),
+        'USER': os.getenv('DATABASE_USER'),
+        'PASSWORD': os.getenv('DATABASE_PASSWORD'),
+        'HOST': os.getenv('DATABASE_HOST'),
+        'PORT': os.getenv('DATABASE_PORT', '5432'),
     }
 }
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
-
+#Validadores de contraseñas
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -106,7 +112,7 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
-
+#Backend de autenticacion predeterminado
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
 )
@@ -114,25 +120,25 @@ AUTHENTICATION_BACKENDS = (
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
-
+#Codigo de idioma
 LANGUAGE_CODE = 'en-us'
-
+#Codigo de zona horaria del proyecto
 TIME_ZONE = 'UTC'
-
+#Internalizacion activada
 USE_I18N = True
-
+#Soporte para sonas horarias activado
 USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
-
+#URL para servir archivos estaticos
 STATIC_URL = 'static/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField' #Tipo de campo PK predeterminado
 
-AUTH_USER_MODEL = 'accounts.Usuario'
+AUTH_USER_MODEL = 'accounts.Usuario' #Modelo de usuario personalizado
 
