@@ -11,6 +11,7 @@ from datetime import datetime
 
 class EntregaTestCase(TestCase):
     def setUp(self):
+        #Configura los datos iniciales para las pruebas
         self.user_profesor = get_user_model().objects.create_user(
             dni='12345678',
             nombre='ProfesorNombre',
@@ -57,12 +58,17 @@ class EntregaTestCase(TestCase):
             fecha_entrega=make_aware(datetime(2024, 6, 25, 12, 0, 0))
         )
 
+    #Prueba la funcionalidad de entrega de tareas
     def test_entregar_tarea(self):
+        #Inicia sesión como alumno
         self.client.login(dni='87654321', password='password')
+        #Envía una solicitud POST para entregar la tarea
         with open('cursos/tests/fixtures/test_file.txt', 'rb') as f:
             response = self.client.post(reverse('entregar_tarea', kwargs={'tarea_id': self.tarea.id}), {
                 'archivo': f,
                 'comentario': 'Comentario de prueba'
             })
+        #Verifica que la respuesta sea exitosa
         self.assertEqual(response.status_code, 200)
+        #Verifica que la entrega se haya guardado en la base de datos
         self.assertTrue(Entrega.objects.filter(tarea=self.tarea, estudiante=self.alumno).exists())

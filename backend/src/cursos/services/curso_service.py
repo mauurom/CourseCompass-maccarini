@@ -3,14 +3,19 @@ from django.utils import timezone
 from ..models.curso import Curso
 from ..models.inscripcion import InscripcionMateria
 
+#Servicio para obtener detalles de un curso y gestionar inscripciones
 def curso_detalle_service(request, curso_id):
+    #Obtiene el curso o retorna un error 404 si no se encuentra
     curso = get_object_or_404(Curso, id=curso_id)
+    #Verifica si el usuario es el profesor del curso
     es_profesor = hasattr(request.user, 'profesor') and curso.profesor == request.user.profesor
     inscrito = False
 
+    #Verifica si el usuario es un alumno y si está inscrito en el curso
     if hasattr(request.user, 'alumno'):
         inscrito = InscripcionMateria.objects.filter(estudiante=request.user.alumno, curso=curso).exists()
 
+    #Maneja la inscripción del alumno al curso si es una solicitud POST y el usuario no es profesor
     if request.method == 'POST' and 'contraseña_matriculacion' in request.POST and not es_profesor:
         if request.POST['contraseña_matriculacion'] == curso.contraseña_matriculacion:
             InscripcionMateria.objects.create(
@@ -21,6 +26,7 @@ def curso_detalle_service(request, curso_id):
             return {'success': True, 'message': 'Inscripción realizada'}
 
     inscripciones = None
+    #Si el usuario es profesor, obtiene las inscripciones del curso
     if es_profesor:
         inscripciones = InscripcionMateria.objects.filter(curso=curso)
 
@@ -31,19 +37,20 @@ def curso_detalle_service(request, curso_id):
             'descripcion': curso.descripcion,
             'año': curso.año,
             'horario': curso.horario,
-            'profesor_id': curso.profesor.usuario.id  # Ajuste aquí
+            'profesor_id': curso.profesor.usuario.id  #Ajuste aquí para obtener el ID del profesor
         },
         'inscrito': inscrito,
         'es_profesor': es_profesor,
         'inscripciones': [{'estudiante_id': i.estudiante.usuario.id, 'fecha_inscripcion': i.fecha_inscripcion} for i in inscripciones] if inscripciones else []
     }
 
+#Servicio para listar todos los cursos y las inscripciones del usuario
 def lista_cursos_service(request):
     usuario = request.user
     materias = Curso.objects.all()
     inscripciones = InscripcionMateria.objects.filter(estudiante__usuario=usuario) if hasattr(usuario, 'alumno') else None
 
-    # Determinar el tipo de usuario
+    #Determina el tipo de usuario basado en su rol
     if hasattr(usuario, 'profesor'):
         tipo_usuario = 'profesor'
     elif hasattr(usuario, 'alumno'):
@@ -58,8 +65,9 @@ def lista_cursos_service(request):
         'tipo_usuario': tipo_usuario
     }
 
+# Servicio para crear un nuevo curso por parte de un profesor
 def crear_curso_service(request):
-    if hasattr(request.user, 'profesor'):
+    if hasattr(request.user, 'profesor'):       #Verifica si el usuario es un profesor
         if request.method == 'POST':
             nombre = request.POST['nombre']
             descripcion = request.POST['descripcion']
@@ -77,4 +85,4 @@ def crear_curso_service(request):
             )
             return {'curso_id': curso.id, 'success': True}
     else:
-        return {'error': 'Unauthorized'}
+        return {'error': 'Unauthorized'}                   #Retorna un error si el usuario no es autorizado

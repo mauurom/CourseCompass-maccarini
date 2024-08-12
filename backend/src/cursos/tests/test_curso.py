@@ -9,6 +9,7 @@ from accounts.models.alumno import Alumno
 
 class CursoTestCase(TestCase):
     def setUp(self):
+        # Configura los datos iniciales para las pruebas
         self.user_profesor = get_user_model().objects.create_user(
             dni='12345678',
             nombre='ProfesorNombre',
@@ -42,6 +43,7 @@ class CursoTestCase(TestCase):
             legajo_alumno=123
         )
 
+    # Prueba la creación de un nuevo curso
     def test_crear_curso(self):
         self.client.login(dni='12345678', password='password')
         response = self.client.post(reverse('crear_curso'), {
@@ -51,17 +53,19 @@ class CursoTestCase(TestCase):
             'horario': 'Martes 14:00 - 16:00',
             'contraseña_matriculacion': 'nuevapass',
         })
-        self.assertEqual(response.status_code, 201)  # creación exitosa
-        self.assertTrue(Curso.objects.filter(nombre='Nuevo Curso').exists())
+        self.assertEqual(response.status_code, 201)              #Verifica que la creación fue exitosa
+        self.assertTrue(Curso.objects.filter(nombre='Nuevo Curso').exists())  #Verifica que el nuevo curso existe
 
+    # Prueba la lista de cursos
     def test_lista_cursos(self):
         self.client.login(dni='12345678', password='password')
         response = self.client.get(reverse('lista_cursos'))
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, self.curso.nombre)
+        self.assertEqual(response.status_code, 200)              #Verifica que la solicitud fue exitosa
+        self.assertContains(response, self.curso.nombre)         #Verifica que el curso de prueba está en la lista
 
+    # Prueba los detalles de un curso específico
     def test_curso_detalle(self):
         self.client.login(dni='12345678', password='password')
         response = self.client.get(reverse('curso_detalle', kwargs={'curso_id': self.curso.id}))
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, self.curso.nombre)
+        self.assertEqual(response.status_code, 200)              #Verifica que la solicitud fue exitosa
+        self.assertContains(response, self.curso.nombre)         # erifica que el nombre del curso está en la respuesta
