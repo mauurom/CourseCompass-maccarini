@@ -6,7 +6,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - .:/app
+      - ./src:/CourseCompass/backend/src
     depends_on:
       - db
     environment:
